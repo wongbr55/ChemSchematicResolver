@@ -221,7 +221,7 @@ def label_diags(labels, diags, fig_bbox):
     # Remove duplicate results
     diags_with_labels, diags_without_labels = remove_duplicates(failed_diag_label, fig_bbox)
 
-    return diags_with_labels + successful_diag_label
+    return diags_with_labels + successful_diag_label + diags_without_labels
 
 
 def assign_label_to_diag(diag, labels, fig_bbox, rate=1):

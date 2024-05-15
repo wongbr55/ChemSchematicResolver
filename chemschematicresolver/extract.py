@@ -306,24 +306,24 @@ def extract_image(filename, debug=False, allow_wildcards=False):
         label = diag.label
         fig = diag.fig
 
-        new_left = min(diag.left, label.left)
-        print("diag.left = " + str(diag.left) + ", label.left = " + str(label.left))
-        new_right = max(diag.right, label.right)
-        print("diag.right = " + str(diag.right) + ", label.right = " + str(label.right))
-        new_bottom = max(diag.bottom, label.bottom)
-        print("diag.bottom = " + str(diag.left) + ", label.bottom = " + str(label.bottom))
-        new_top = min(diag.top, label.top)
-        print("diag.top = " + str(diag.top) + ", label.top = " + str(label.top))
+        if label is not None:
+            new_left = min(diag.left, label.left)
+            # print("diag.left = " + str(diag.left) + ", label.left = " + str(label.left))
+            new_right = max(diag.right, label.right)
+            # print("diag.right = " + str(diag.right) + ", label.right = " + str(label.right))
+            new_bottom = max(diag.bottom, label.bottom)
+            # print("diag.bottom = " + str(diag.left) + ", label.bottom = " + str(label.bottom))
+            new_top = min(diag.top, label.top)
+            # print("diag.top = " + str(diag.top) + ", label.top = " + str(label.top))
+        else:
+            new_left = diag.left
+            new_right = diag.right
+            new_top = diag.top
+            new_bottom = diag.bottom
 
         clean_fig = copy.deepcopy(copy_fig)
-
         image_array = crop(clean_fig.img, new_left, new_right, new_top, new_bottom)
         imsave("image_" + str(i) + ".png", image_array)
-    #     img = Image.fromarray(image_array)
-    #     img = img.convert("RGB")
-    #     img.save("image_" + str(i) + ".png")
-
-    # "C:/Users/sudbu/Downloads/test_img4.jpeg"
 
     # for diag in labelled_diags:
     #
