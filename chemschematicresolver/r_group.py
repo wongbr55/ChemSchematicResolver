@@ -16,15 +16,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import logging
 
-import osra_rgroup
-import cirpy
+# import osra_rgroup
+# import cirpy
 import itertools
 import os
 
-from . import io
-from . import actions
-from .model import RGroup
-from .ocr import ASSIGNMENT, SEPERATORS, CONCENTRATION
+import ios
+import actions
+from model import RGroup
+from ocr import ASSIGNMENT, SEPERATORS, CONCENTRATION
 
 import re
 from skimage.util import pad

@@ -26,7 +26,7 @@ from skimage.morphology import skeletonize as skeletonize_skimage
 
 from scipy import ndimage as ndi
 
-from .model import Rect
+from model import Rect
 
 log = logging.getLogger(__name__)
 

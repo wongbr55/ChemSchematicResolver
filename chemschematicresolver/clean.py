@@ -14,7 +14,7 @@ import copy
 import numpy as np
 import warnings
 
-from .ocr import read_label, read_diag_text
+from ocr import read_label, read_diag_text
 
 
 def find_repeating_unit(labels, diags, fig):

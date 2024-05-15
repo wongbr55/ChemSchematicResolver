@@ -30,7 +30,7 @@ import csv
 
 import warnings
 
-from .model import Figure
+from model import Figure
 
 log = logging.getLogger(__name__)
 

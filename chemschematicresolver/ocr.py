@@ -27,9 +27,9 @@ import numpy as np
 import tesserocr
 from chemdataextractor.doc.text import Sentence
 
-from . import decorators, io, model
-from .utils import convert_greyscale, crop, pad
-from .parse import ChemSchematicResolverTokeniser, LabelParser
+import decorators, io, model
+from utils import convert_greyscale, crop, pad
+from parse import ChemSchematicResolverTokeniser, LabelParser
 
 
 log = logging.getLogger(__name__)
@@ -616,5 +616,3 @@ class TextSymbol(TextElement):
         self.is_dropcap = is_dropcap
         self.is_subscript = is_subscript
         self.is_superscript = is_superscript
-
-

@@ -15,12 +15,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import logging
 
-from .io import imread
-from .actions import segment, classify_kmeans, preprocessing, label_diags, read_diagram_pyosra
-from .clean import clean_output
-from .ocr import read_label
-from .r_group import detect_r_group, get_rgroup_smiles
-from .validate import is_false_positive, remove_repeating
+from chemschematicresolver.model import Figure
+from chemschematicresolver.utils import crop
+from ios import imread, imsave
+from actions import segment, classify_kmeans, preprocessing, label_diags
+from clean import clean_output
+from ocr import read_label
+from r_group import detect_r_group, get_rgroup_smiles
+from validate import is_false_positive, remove_repeating
 
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
@@ -28,6 +30,8 @@ import os
 import urllib
 import math
 import tarfile, zipfile
+from PIL import Image
+import copy
 
 from chemdataextractor import Document
 
@@ -263,6 +267,7 @@ def extract_image(filename, debug=False, allow_wildcards=False):
 
     # Read in float and raw pixel images
     fig = imread(filename)
+    copy_fig = copy.deepcopy(fig)
     fig_bbox = fig.get_bounding_box()
 
     # Segment image into pixel islands
@@ -295,63 +300,86 @@ def extract_image(filename, debug=False, allow_wildcards=False):
     labelled_diags = label_diags(labels, diags, fig_bbox)
     labelled_diags = remove_repeating(labelled_diags)
 
-    for diag in labelled_diags:
-
+    for i in range(0, len(labelled_diags)):
+        # labelled_diags[i].label, conf = read_label(fig, labelled_diags[i].label)
+        diag = labelled_diags[i]
         label = diag.label
+        fig = diag.fig
 
-        if debug is True:
+        new_left = min(diag.left, label.left)
+        print("diag.left = " + str(diag.left) + ", label.left = " + str(label.left))
+        new_right = max(diag.right, label.right)
+        print("diag.right = " + str(diag.right) + ", label.right = " + str(label.right))
+        new_bottom = max(diag.bottom, label.bottom)
+        print("diag.bottom = " + str(diag.left) + ", label.bottom = " + str(label.bottom))
+        new_top = min(diag.top, label.top)
+        print("diag.top = " + str(diag.top) + ", label.top = " + str(label.top))
 
-            colour = next(colours)
+        clean_fig = copy.deepcopy(copy_fig)
 
-            # Add diag bbox to debug image
-            diag_rect = mpatches.Rectangle((diag.left, diag.top), diag.width, diag.height,
-                                           fill=False, edgecolor=colour, linewidth=2)
-            ax.text(diag.left, diag.top + diag.height / 4, '[%s]' % diag.tag, size=diag.height / 20, color='r')
-            ax.add_patch(diag_rect)
+        image_array = crop(clean_fig.img, new_left, new_right, new_top, new_bottom)
+        imsave("image_" + str(i) + ".png", image_array)
+    #     img = Image.fromarray(image_array)
+    #     img = img.convert("RGB")
+    #     img.save("image_" + str(i) + ".png")
 
-            # Add label bbox to debug image
-            label_rect = mpatches.Rectangle((label.left, label.top), label.width, label.height,
-                                            fill=False, edgecolor=colour, linewidth=2)
-            ax.text(label.left, label.top + label.height / 4, '[%s]' % label.tag, size=label.height / 5, color='r')
-            ax.add_patch(label_rect)
+    # "C:/Users/sudbu/Downloads/test_img4.jpeg"
 
-        # Read the label
-        diag.label, conf = read_label(fig, label)
-
-        if not diag.label.text:
-            log.warning('Text could not be resolved from label %s' % label.tag)
-
-        # Only extract images where the confidence is sufficiently high
-        if not math.isnan(conf) and conf > confidence_threshold:
-
-            # Add r-group variables if detected
-            diag = detect_r_group(diag)
-
-            # Get SMILES for output
-            smiles, r_smiles = get_smiles(diag, smiles, r_smiles, extension)
-
-        else:
-            log.warning('Confidence of label %s deemed too low for extraction' % diag.label.tag)
-
-    log.info('The results are :')
-    log.info('R-smiles %s' % r_smiles)
-    log.info('Smiles %s' % smiles)
-    if debug is True:
-        ax.set_axis_off()
-        plt.show()
-
-    total_smiles = smiles + r_smiles
-
-    # Removing false positives from lack of labels or wildcard smiles
-    output = [smile for smile in total_smiles if is_false_positive(smile, allow_wildcards=allow_wildcards) is False]
-    if len(total_smiles) != len(output):
-        log.warning('Some SMILES strings were determined to be false positives and were removed from the output.')
-
-    log.info('Final Results : ')
-    for result in output:
-        log.info(result)
-
-    return output
+    # for diag in labelled_diags:
+    #
+    #     label = diag.label
+    #
+    #     if debug is True:
+    #
+    #         colour = next(colours)
+    #
+    #         # Add diag bbox to debug image
+    #         diag_rect = mpatches.Rectangle((diag.left, diag.top), diag.width, diag.height,
+    #                                        fill=False, edgecolor=colour, linewidth=2)
+    #         ax.text(diag.left, diag.top + diag.height / 4, '[%s]' % diag.tag, size=diag.height / 20, color='r')
+    #         ax.add_patch(diag_rect)
+    #
+    #         # Add label bbox to debug image
+    #         label_rect = mpatches.Rectangle((label.left, label.top), label.width, label.height,
+    #                                         fill=False, edgecolor=colour, linewidth=2)
+    #         ax.text(label.left, label.top + label.height / 4, '[%s]' % label.tag, size=label.height / 5, color='r')
+    #         ax.add_patch(label_rect)
+    #
+    #     Read the label
+    #     diag.label, conf = read_label(fig, label)
+    #
+    #     if not diag.label.text:
+    #         log.warning('Text could not be resolved from label %s' % label.tag)
+    #     Only extract images where the confidence is sufficiently high
+    #     if not math.isnan(conf) and conf > confidence_threshold:
+    #
+    #         # Add r-group variables if detected
+    #         diag = detect_r_group(diag)
+    #
+    #         # Get SMILES for output
+    #         smiles, r_smiles = get_smiles(diag, smiles, r_smiles, extension)
+    #
+    #     else:
+    #         log.warning('Confidence of label %s deemed too low for extraction' % diag.label.tag)
+    # log.info('The results are :')
+    # log.info('R-smiles %s' % r_smiles)
+    # log.info('Smiles %s' % smiles)
+    # if debug is True:
+    #     ax.set_axis_off()
+    #     plt.show()
+    #
+    # total_smiles = smiles + r_smiles
+    #
+    # # Removing false positives from lack of labels or wildcard smiles
+    # output = [smile for smile in total_smiles if is_false_positive(smile, allow_wildcards=allow_wildcards) is False]
+    # if len(total_smiles) != len(output):
+    #     log.warning('Some SMILES strings were determined to be false positives and were removed from the output.')
+    #
+    # log.info('Final Results : ')
+    # for result in output:
+    #     log.info(result)
+    #
+    # return output
 
 
 def extract_images(dirname, debug=False, allow_wildcards=False):
@@ -420,31 +448,31 @@ def extract_images(dirname, debug=False, allow_wildcards=False):
     return results
 
 
-def get_smiles(diag, smiles, r_smiles, extension='jpg'):
-    """ Extracts diagram information.
-
-    :param diag: Input Diagram
-    :param smiles: List of smiles from all diagrams up to 'diag'
-    :param r_smiles: List of smiles extracted from R-Groups from all diagrams up to 'diag'
-    :param extension: Format of image file
-
-    :return smiles: List of smiles from all diagrams up to and including 'diag'
-    :return r_smiles: List of smiles extracted from R-Groups from all diagrams up to and including 'diag'
-    """
-
-    # Resolve R-groups if detected
-    if len(diag.label.r_group) > 0:
-        r_smiles_group = get_rgroup_smiles(diag, extension)
-        for smile in r_smiles_group:
-            label_cand_str = list(set([cand.text for cand in smile[0]]))
-            r_smiles.append((label_cand_str, smile[1]))
-
-    # Resolve diagram normally if no R-groups - should just be one smile
-    else:
-        smile = read_diagram_pyosra(diag, extension)
-        label_raw = diag.label.text
-        label_cand_str = list(set([clean_output(cand.text) for cand in label_raw]))
-
-        smiles.append((label_cand_str, smile))
-
-    return smiles, r_smiles
+# def get_smiles(diag, smiles, r_smiles, extension='jpg'):
+#     """ Extracts diagram information.
+#
+#     :param diag: Input Diagram
+#     :param smiles: List of smiles from all diagrams up to 'diag'
+#     :param r_smiles: List of smiles extracted from R-Groups from all diagrams up to 'diag'
+#     :param extension: Format of image file
+#
+#     :return smiles: List of smiles from all diagrams up to and including 'diag'
+#     :return r_smiles: List of smiles extracted from R-Groups from all diagrams up to and including 'diag'
+#     """
+#
+#     # Resolve R-groups if detected
+#     if len(diag.label.r_group) > 0:
+#         r_smiles_group = get_rgroup_smiles(diag, extension)
+#         for smile in r_smiles_group:
+#             label_cand_str = list(set([cand.text for cand in smile[0]]))
+#             r_smiles.append((label_cand_str, smile[1]))
+#
+#     # Resolve diagram normally if no R-groups - should just be one smile
+#     else:
+#         smile = read_diagram_pyosra(diag, extension)
+#         label_raw = diag.label.text
+#         label_cand_str = list(set([clean_output(cand.text) for cand in label_raw]))
+#
+#         smiles.append((label_cand_str, smile))
+#
+#     return smiles, r_smiles

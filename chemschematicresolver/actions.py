@@ -25,12 +25,11 @@ import itertools
 import copy
 from scipy import ndimage as ndi
 from sklearn.cluster import KMeans
-import osra_rgroup
+# import osra_rgroup
 
-from .model import Panel, Diagram, Label, Rect, Figure
-from .io import imsave, imdel
-from .clean import find_repeating_unit, clean_output
-from .utils import crop, skeletonize, binarize, binary_close, binary_floodfill, merge_rect, merge_overlap
+from model import Panel, Diagram, Label, Rect, Figure
+from clean import find_repeating_unit
+from utils import crop, skeletonize, binarize, binary_close, binary_floodfill, merge_rect, merge_overlap
 
 # Standard path to superatom dictionary file
 parent_dir = os.path.dirname(os.path.abspath(__file__))
@@ -144,7 +143,7 @@ def preprocessing(labels, diags, fig):
     :param labels: List of Label objects
     :param diags: List of Diagram objects
     :param fig: Figure object
-    
+
     :return out_labels: List of Labels after merging and re-tagging
     :return out_diags: List of Diagrams after re-tagging
     """
@@ -306,35 +305,35 @@ def assign_label_to_diag_postprocessing(diag, labels, direction, fig_bbox, rate=
     return diag
 
 
-def read_diagram_pyosra(diag, extension='jpg', debug=False, superatom_path=superatom_file, spelling_path=spelling_file):
-    """ Converts a diagram to SMILES using pyosra
-
-    :param diag: Diagram to be extracted
-    :param extension: String file extension
-    :param debug: Bool inicating debug mode
-
-    :return smile: String of extracted chemical SMILE
-
-    """
-
-    # Add some padding to image to help resolve characters on the edge
-    padded_img = pad(diag.fig.img, ((5, 5), (5, 5), (0, 0)), mode='constant', constant_values=1)
-
-    # Save a temp image
-    temp_img_fname = 'osra_temp.' + extension
-    imsave(temp_img_fname, padded_img)
-
-    # Run osra on temp image
-    smile = osra_rgroup.read_diagram(temp_img_fname, debug=debug, superatom_file=superatom_path, spelling_file=spelling_path)
-
-    if not smile:
-        log.warning('No SMILES string was extracted for diagram %s' % diag.tag)
-
-    if not debug:
-        imdel(temp_img_fname)
-
-    smile = clean_output(smile)
-    return smile
+# def read_diagram_pyosra(diag, extension='jpg', debug=False, superatom_path=superatom_file, spelling_path=spelling_file):
+#     """ Converts a diagram to SMILES using pyosra
+#
+#     :param diag: Diagram to be extracted
+#     :param extension: String file extension
+#     :param debug: Bool inicating debug mode
+#
+#     :return smile: String of extracted chemical SMILE
+#
+#     """
+#
+#     # Add some padding to image to help resolve characters on the edge
+#     padded_img = pad(diag.fig.img, ((5, 5), (5, 5), (0, 0)), mode='constant', constant_values=1)
+#
+#     # Save a temp image
+#     temp_img_fname = 'osra_temp.' + extension
+#     imsave(temp_img_fname, padded_img)
+#
+#     # Run osra on temp image
+#     smile = osra_rgroup.read_diagram(temp_img_fname, debug=debug, superatom_file=superatom_path, spelling_file=spelling_path)
+#
+#     if not smile:
+#         log.warning('No SMILES string was extracted for diagram %s' % diag.tag)
+#
+#     if not debug:
+#         imdel(temp_img_fname)
+#
+#     smile = clean_output(smile)
+#     return smile
 
 
 def remove_diag_pixel_islands(diags, fig):
@@ -689,5 +688,3 @@ def remove_duplicates(diags, fig_bbox, rate=1):
         output_labelless_diags.extend(labelless_diags)
 
     return output_diags, output_labelless_diags
-
-

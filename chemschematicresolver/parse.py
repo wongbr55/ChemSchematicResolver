@@ -177,4 +177,3 @@ class ChemSchematicResolverTokeniser(WordTokenizer):
             if lowertext == contraction[0]:
                 return self._split_span(span, contraction[1])
         return [span]
-
