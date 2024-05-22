@@ -1,6 +1,6 @@
 import chemschematicresolver as csr
 import argparse
-import image-segmentation.image_segmentation as imseg
+import image_extraction.image_segmentation as imseg
 import json
 
 
@@ -42,7 +42,7 @@ def get_substrates(filestr: str):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--path', type=str, required=True)
-	
+
 	parsed_args = parser.parse_args()
 	smiles_and_yield = get_substrates(parsed_args.path)
 	substrate_dict = {}
