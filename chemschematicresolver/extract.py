@@ -252,18 +252,9 @@ def extract_image(filename, debug=False, allow_wildcards=False):
     :param debug: Bool to indicate debugging
     :param allow_wildcards: Bool to indicate whether results containing wildcards are permitted
 
-    :return : List of label candidates and smiles
-    :rtype : list[tuple[list[string],string]]
+    :return : Number of diagrams saved
+    :rtype : int
     """
-
-    # Output lists
-    r_smiles = []
-    smiles = []
-
-    extension = filename.split('.')[-1]
-
-    # Confidence threshold for OCR results
-    confidence_threshold = 73.7620468139648
 
     # Read in float and raw pixel images
     fig = imread(filename)
@@ -300,86 +291,29 @@ def extract_image(filename, debug=False, allow_wildcards=False):
     labelled_diags = label_diags(labels, diags, fig_bbox)
     labelled_diags = remove_repeating(labelled_diags)
 
+    # new code, take labels and diagrams and save as images
     for i in range(0, len(labelled_diags)):
-        # labelled_diags[i].label, conf = read_label(fig, labelled_diags[i].label)
         diag = labelled_diags[i]
         label = diag.label
-        fig = diag.fig
+
+        cushion_factor = 10
 
         if label is not None:
-            new_left = min(diag.left, label.left)
-            # print("diag.left = " + str(diag.left) + ", label.left = " + str(label.left))
-            new_right = max(diag.right, label.right)
-            # print("diag.right = " + str(diag.right) + ", label.right = " + str(label.right))
-            new_bottom = max(diag.bottom, label.bottom)
-            # print("diag.bottom = " + str(diag.left) + ", label.bottom = " + str(label.bottom))
-            new_top = min(diag.top, label.top)
-            # print("diag.top = " + str(diag.top) + ", label.top = " + str(label.top))
+            new_left = min(diag.left - cushion_factor, label.left - cushion_factor)
+            new_right = max(diag.right + cushion_factor, label.right + cushion_factor)
+            new_bottom = max(diag.bottom + cushion_factor, label.bottom + cushion_factor)
+            new_top = min(diag.top - cushion_factor, label.top - cushion_factor)
         else:
-            new_left = diag.left
-            new_right = diag.right
-            new_top = diag.top
-            new_bottom = diag.bottom
+            new_left = diag.left - cushion_factor
+            new_right = diag.right + cushion_factor
+            new_top = diag.top - cushion_factor
+            new_bottom = diag.bottom + cushion_factor
 
         clean_fig = copy.deepcopy(copy_fig)
         image_array = crop(clean_fig.img, new_left, new_right, new_top, new_bottom)
-        imsave("image_" + str(i) + ".png", image_array)
+        imsave("substrate_image_" + str(i) + ".jpeg", image_array)
 
-    # for diag in labelled_diags:
-    #
-    #     label = diag.label
-    #
-    #     if debug is True:
-    #
-    #         colour = next(colours)
-    #
-    #         # Add diag bbox to debug image
-    #         diag_rect = mpatches.Rectangle((diag.left, diag.top), diag.width, diag.height,
-    #                                        fill=False, edgecolor=colour, linewidth=2)
-    #         ax.text(diag.left, diag.top + diag.height / 4, '[%s]' % diag.tag, size=diag.height / 20, color='r')
-    #         ax.add_patch(diag_rect)
-    #
-    #         # Add label bbox to debug image
-    #         label_rect = mpatches.Rectangle((label.left, label.top), label.width, label.height,
-    #                                         fill=False, edgecolor=colour, linewidth=2)
-    #         ax.text(label.left, label.top + label.height / 4, '[%s]' % label.tag, size=label.height / 5, color='r')
-    #         ax.add_patch(label_rect)
-    #
-    #     Read the label
-    #     diag.label, conf = read_label(fig, label)
-    #
-    #     if not diag.label.text:
-    #         log.warning('Text could not be resolved from label %s' % label.tag)
-    #     Only extract images where the confidence is sufficiently high
-    #     if not math.isnan(conf) and conf > confidence_threshold:
-    #
-    #         # Add r-group variables if detected
-    #         diag = detect_r_group(diag)
-    #
-    #         # Get SMILES for output
-    #         smiles, r_smiles = get_smiles(diag, smiles, r_smiles, extension)
-    #
-    #     else:
-    #         log.warning('Confidence of label %s deemed too low for extraction' % diag.label.tag)
-    # log.info('The results are :')
-    # log.info('R-smiles %s' % r_smiles)
-    # log.info('Smiles %s' % smiles)
-    # if debug is True:
-    #     ax.set_axis_off()
-    #     plt.show()
-    #
-    # total_smiles = smiles + r_smiles
-    #
-    # # Removing false positives from lack of labels or wildcard smiles
-    # output = [smile for smile in total_smiles if is_false_positive(smile, allow_wildcards=allow_wildcards) is False]
-    # if len(total_smiles) != len(output):
-    #     log.warning('Some SMILES strings were determined to be false positives and were removed from the output.')
-    #
-    # log.info('Final Results : ')
-    # for result in output:
-    #     log.info(result)
-    #
-    # return output
+    return len(labelled_diags)
 
 
 def extract_images(dirname, debug=False, allow_wildcards=False):

@@ -26,8 +26,7 @@ import warnings
 import numpy as np
 import tesserocr
 from chemdataextractor.doc.text import Sentence
-
-import decorators, io, model
+import decorators, ios, model
 from utils import convert_greyscale, crop, pad
 from parse import ChemSchematicResolverTokeniser, LabelParser
 
@@ -298,7 +297,7 @@ def get_text(img, x_offset=0, y_offset=0, psm=PSM.AUTO, padding=0, whitelist=Non
     with tesserocr.PyTessBaseAPI(psm=psm) as api:
         # Convert image to PIL to load into tesseract (suppress precision loss warning)
         with warnings.catch_warnings(record=True) as ws:
-            pil_img = io.img_as_pil(img)
+            pil_img = ios.img_as_pil(img)
         api.SetImage(pil_img)
         if whitelist is not None:
             api.SetVariable('tessedit_char_whitelist', whitelist)
