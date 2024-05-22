@@ -1,4 +1,5 @@
 import chemschematicresolver as csr
+import argparse
 import image-segmentation.image_segmentation as imseg
 
 
@@ -36,3 +37,10 @@ def get_substrates(filestr: str):
 
 	# could also print to use in a shell setting
 	return smiles_and_yield
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--path', type=str, required=True)
+	
+	parsed_args = parser.parse_args()
+	get_substrates(parsed_args.path)
