@@ -1,6 +1,7 @@
 import chemschematicresolver as csr
 import argparse
 import image-segmentation.image_segmentation as imseg
+import json
 
 
 def get_yield_from_comment(comment: str):
@@ -43,4 +44,11 @@ if __name__ == "__main__":
 	parser.add_argument('--path', type=str, required=True)
 	
 	parsed_args = parser.parse_args()
-	get_substrates(parsed_args.path)
+	smiles_and_yield = get_substrates(parsed_args.path)
+	substrate_dict = {}
+	for i in range(0, len(smiles_and_yield)):
+		substrate_dict["substrate" + str(i)] = smiles_and_yield[i]
+	new_json = json.dump(substrate_dict)
+
+	with open("substrates.json", "w") as outfile:
+    		outfile.write(new_json)
