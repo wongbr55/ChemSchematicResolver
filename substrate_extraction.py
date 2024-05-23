@@ -18,7 +18,7 @@ def get_yield_from_comment(comment: str):
 			curr_yield += comment[i]
 		elif seen_percent and comment[i] == ' ':
 			break
-	return yield
+	return curr_yield
 
 
 def get_substrates(filestr: str):
@@ -31,11 +31,13 @@ def get_substrates(filestr: str):
 	smiles_and_yield = []
 	for i in range(0, num_of_substrates):
 		try:
-			result = csr.extract_image("substrate_image_" + str(i) + ".jpeg)
+			result = csr.extract_image("substrate_image_" + str(i) + ".jpeg")
 			for tuple in result:
 				curr_yield, smiles = get_yield_from_comment(tuple[0]), tuple[1]
 				smiles_and_yield.append((smiles, curr_yield))
 
+		except:
+			print("Unable to extract substrate_image" + str(i))
 	# could also print to use in a shell setting
 	return smiles_and_yield
 
