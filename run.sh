@@ -1,6 +1,6 @@
 #!/usr/local/bin/bash
 conda activate chemschematicresolver
-python substrate_extraction.py --path $1
+python ./image_extractor/substrate_extraction.py --path $1
 conda deactivate
 conda activate rde2
-python reactiondataextractor/extract.py --path $1 --output_dir ./
+python reactiondataextractor/extract.py --path ./reaction.jpeg --output_dir ./
